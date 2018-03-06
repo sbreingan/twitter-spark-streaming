@@ -37,7 +37,7 @@
                             <archive>
                                 <manifest>
                                     <mainClass>
-                                        KafkaEncoder
+                                        KafkaTwitterProducer
                                     </mainClass>
                                 </manifest>
                             </archive>
