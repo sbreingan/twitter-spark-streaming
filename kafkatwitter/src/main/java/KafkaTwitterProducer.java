@@ -11,6 +11,7 @@ import com.twitter.hbc.ClientBuilder;
 import com.twitter.hbc.core.Client;
 import com.twitter.hbc.core.Constants;
 import com.twitter.hbc.core.endpoint.StatusesFilterEndpoint;
+import com.twitter.hbc.core.endpoint.StreamingEndpoint;
 import com.twitter.hbc.core.processor.StringDelimitedProcessor;
 import com.twitter.hbc.httpclient.auth.Authentication;
 import com.twitter.hbc.httpclient.auth.OAuth1;
@@ -61,22 +62,38 @@ public class KafkaTwitterProducer {
 
         BlockingQueue<String> queue = new LinkedBlockingQueue<String>(10000);
 
-        StatusesSampleEndpoint endpointSample = new StatusesSampleEndpoint();
-        StatusesFilterEndpoint endpoint = new StatusesFilterEndpoint();
-        // add some track terms
-        endpoint.trackTerms(Lists.newArrayList(args));
+        StreamingEndpoint streamingEndpoint = getStreamingEndpoint(args);
 
         Authentication auth = new OAuth1(consumerKey, consumerSecret, accessToken, accessTokenSecret);
 
         // Create a new BasicClient. By default gzip is enabled.
         Client client = new ClientBuilder().hosts(Constants.STREAM_HOST)
-                .endpoint(endpoint)
+                .endpoint(streamingEndpoint)
                 .authentication(auth)
                 .processor(new StringDelimitedProcessor(queue)).build();
 
         // Establish a connection
         client.connect();
+        sendMessages(producer, queue, client);
+        return;
 
+    }
+
+    private StreamingEndpoint getStreamingEndpoint(String[] args) {
+
+        StreamingEndpoint streamingEndpoint;
+        if(args.length == 0){
+            streamingEndpoint = new StatusesSampleEndpoint();
+        } else {
+            StatusesFilterEndpoint filterEndpoint = new StatusesFilterEndpoint();
+            // add some track terms
+            filterEndpoint.trackTerms(Lists.newArrayList(args));
+            streamingEndpoint = filterEndpoint;
+        }
+        return streamingEndpoint;
+    }
+
+    private void sendMessages(Producer<String, String> producer, BlockingQueue<String> queue, Client client) {
         // Do whatever needs to be done with messages
         while(true){
             ProducerRecord<String, String> message = null;
