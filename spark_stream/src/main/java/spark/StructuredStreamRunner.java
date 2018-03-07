@@ -13,18 +13,20 @@ import twitter4j.Status;
 import twitter4j.TwitterObjectFactory;
 
 import static org.apache.spark.sql.functions.col;
+import static org.apache.spark.sql.functions.window;
 
 public class StructuredStreamRunner {
 
     public static void main(String [] args) throws Exception{
         
-        Logger.getRootLogger().setLevel(Level.WARN);
+
         startReadingTweets();
     }
 
     private static void startReadingTweets() throws StreamingQueryException {
-        
-        Dataset<Row> dataset = createKafkaDataset().select(col("data").cast("string"));
+
+
+        Dataset<Row> dataset = createKafkaDataset().select(col("value").cast("string"));
 
         Dataset<String> statusJSON = dataset.as(Encoders.STRING());
 
@@ -38,6 +40,13 @@ public class StructuredStreamRunner {
 
         tweetDS.printSchema();
 
+        showEverything(tweetDS);
+    }
+
+    private static void showEverything(Dataset<TwitterBean> tweetDS) throws StreamingQueryException {
+        
+        Logger.getRootLogger().setLevel(Level.WARN);
+
         tweetDS.writeStream().format("console")
                 .option("truncate", false)
                 .outputMode(OutputMode.Append())
@@ -45,6 +54,7 @@ public class StructuredStreamRunner {
                 .start()
                 .awaitTermination();
     }
+
 
     private static Dataset<Row> createKafkaDataset() {
 
