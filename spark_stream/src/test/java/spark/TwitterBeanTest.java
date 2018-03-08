@@ -79,11 +79,11 @@ public class TwitterBeanTest {
         assertEquals(tb.getLanguage(), "en");
         assertEquals(tb.getCreatedDate(), CREATED_DATE);
         assertEquals(tb.getCountryName(), "United Kingdom");
-        assertEquals(tb.getFavourtieCount(), 13);
+        assertEquals(tb.getFavouriteCount(), 13);
         assertEquals(tb.getRetweetCount(), 123);
         assertEquals(tb.getUsername(), TEST_USER);
         assertEquals(tb.isPossiblySensitive(), false);
-
+        assertEquals(tb.isRetweet(), false);
         List<String> hashTags = new ArrayList<>();
         hashTags.add("#hashtag1");
         hashTags.add("#hashtag2");

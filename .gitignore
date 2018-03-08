@@ -26,3 +26,7 @@ kafkatwitter/kafkatwitter.iml
 spark_stream/.idea/
 sparkkafka/.idea/
 *.iml
+kafka_twitter/.idea/compiler.xml
+kafka_twitter/.idea/
+kafka_twitter/target/
+kafka_twitter/src/main/resources/twitterauth.properties

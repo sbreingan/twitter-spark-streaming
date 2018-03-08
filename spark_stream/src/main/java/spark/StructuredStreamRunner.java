@@ -12,8 +12,7 @@ import org.apache.spark.sql.streaming.Trigger;
 import twitter4j.Status;
 import twitter4j.TwitterObjectFactory;
 
-import static org.apache.spark.sql.functions.col;
-import static org.apache.spark.sql.functions.window;
+import static org.apache.spark.sql.functions.*;
 
 public class StructuredStreamRunner {
 
@@ -40,7 +39,8 @@ public class StructuredStreamRunner {
 
         tweetDS.printSchema();
 
-        showEverything(tweetDS);
+        /*showEverything(tweetDS); */
+        showTrendingHashtags(tweetDS);
     }
 
     private static void showEverything(Dataset<TwitterBean> tweetDS) throws StreamingQueryException {
@@ -53,6 +53,35 @@ public class StructuredStreamRunner {
                 .trigger(Trigger.ProcessingTime("10 seconds"))
                 .start()
                 .awaitTermination();
+    }
+
+    private static void showTrendingHashtags(Dataset<TwitterBean> tweetDS) throws StreamingQueryException {
+
+        Logger.getRootLogger().setLevel(Level.WARN);
+
+        Dataset<Row> rows = tweetDS.filter(x -> x.getLanguage().equals("en"))
+                .withColumn("hashtag", explode(col("hashtags")))
+                .withColumn("hashtag", lower(col("hashtag")))
+                .select("hashtag", "userName", "followerCount", "retweet", "favouriteCount", "retweetCount")
+                .groupBy(col("hashtag")).agg(count("*").as("count"),
+                        avg("followerCount"),
+                        sum(col("retweet").cast("integer")).as("num retweets"))
+                .filter(col("count").gt(10));
+
+
+        rows =  rows.withColumn("percentage retweet", col("num retweets").divide(col("count")).multiply(100.0))
+                .orderBy(col("count").desc());
+
+
+        rows.writeStream()
+                .format("console")
+                .option("truncate", false)
+                .outputMode("complete")
+                .trigger(Trigger.ProcessingTime("30 seconds"))
+                .start()
+                .awaitTermination();
+
+
     }
 
 

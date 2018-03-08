@@ -17,9 +17,12 @@ public class TwitterBean {
     private boolean isPossiblySensitive;
     private String placeName;
     private String countryName;
+
+
     private int favouriteCount;
     private int retweetCount;
     private String text;
+    private boolean isRetweet;
 
     public static TwitterBean createTwitterBean(Status status) {
 
@@ -42,9 +45,14 @@ public class TwitterBean {
         for (HashtagEntity entity : status.getHashtagEntities()) {
             tb.hashTags.add(entity.getText());
         }
+        tb.isRetweet = status.isRetweet();
 
         return tb;
     }
+
+    public boolean isRetweet() { return isRetweet; }
+
+    public void setRetweet(boolean retweet) { isRetweet = retweet;  }
 
     public String getUsername() {
         return username;
@@ -110,7 +118,7 @@ public class TwitterBean {
         this.countryName = countryName;
     }
 
-    public int getFavourtieCount() {
+    public int getFavouriteCount() {
         return favouriteCount;
     }
 
